@@ -109,6 +109,61 @@ Rules that matter, because they decide the URL:
   prefer `fullPage` for docs shots. Bytes that are identical to last build's
   are skipped at upload, so a stable test is also a cheaper one.
 
+### Dark mode (and other themes)
+
+If the app has a dark mode, capture it **beside** the normal shot, not as a
+second screenshot. Save it as `{name}.dark.png`, in the same format, in the
+same push:
+
+```
+test-results/dashboard.png        →  dashboard
+test-results/dashboard.dark.png   →  dashboard, served for ?theme=dark
+```
+
+It keeps the screenshot's URL: `…/dashboard@latest.png?theme=dark` serves it,
+and serves `dashboard.png` when a screenshot has no dark version. So capture
+dark for the screens a reader sees in dark mode, not necessarily every one.
+The push log prints one line per theme file it picked up
+(`theme dashboard.dark → screenery-theme/dashboard/dark`).
+
+First find out how the app switches. **Follows the system** (`@media
+(prefers-color-scheme: dark)` in its CSS): emulate it. **Has its own switch**
+(a `data-theme` attribute, a `dark` class, a `theme` key in `localStorage`):
+set that, the way the app itself does, before the page renders.
+
+```ts
+for (const theme of ['light', 'dark'] as const) {
+  test(`dashboard (${theme})`, async ({ page }) => {
+    // System-following app:
+    await page.emulateMedia({ colorScheme: theme });
+    // App with its own switch, e.g. a `theme` key read on load:
+    // await page.addInitScript((t) => localStorage.setItem('theme', t), theme);
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    const suffix = theme === 'dark' ? '.dark' : '';
+    await page.screenshot({ path: `test-results/dashboard${suffix}.png`, fullPage: true });
+  });
+}
+```
+
+- **Check that the dark shot is dark.** The commonest failure is an app that
+  reads its theme before the emulation or the stored key lands, so both files
+  come out light. Look at one, or assert on a computed background colour.
+- **Every theme needs its screenshot in the same push.** `dashboard.dark.png`
+  with no `dashboard.png` is refused: a push replaces the channel, so it would
+  erase the screenshot it belongs to.
+- **Other themes** go in `screenery.config.json` at the repository root,
+  `{ "themes": ["high-contrast"] }`, and are saved as
+  `{name}.high-contrast.png`. A product whose normal look is dark sets
+  `"baseTheme": "dark"` and saves `{name}.light.png` instead. Any other dotted
+  name (`dashboard.v2.png`) stays an ordinary screenshot.
+- **The plan limits themes**, base included: 2 on free (light and dark), 6 on
+  pro. A theme counts toward stored bytes and files per push, not toward the
+  screenshot count.
+
+Embedding the dark version is the `screenery-embed` skill's "Dark mode"
+section: what the page writes depends on how the site picks its theme.
+
 Optional CI gate, before push (or as `diff-baseline` on the Action):
 
 ```bash
