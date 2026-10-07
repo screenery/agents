@@ -1,0 +1,57 @@
+# Are the skills in this plugin the ones Screenery publishes?
+#
+# The skills are written in the Screenery repository and served at
+# https://app.screenery.dev/skills/. Once a day this copies them here and, when
+# anything changed, opens a pull request that also bumps the plugin's patch
+# version. Merging that pull request is what ships the new skills: Claude Code,
+# Codex and Cursor read this repository's main branch.
+#
+# Opening the pull request needs the repository setting "Allow GitHub Actions
+# to create and approve pull requests" (Settings > Actions > General). A pull
+# request opened by this workflow does not start `check.yml` by itself; close
+# and reopen it to run the check.
+
+name: Sync skills
+
+on:
+  schedule:
+    - cron: '41 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Copy the published skills
+        id: sync
+        run: node scripts/sync-skills.mjs
+      - name: Check the result
+        if: steps.sync.outputs.changed == 'true'
+        run: node scripts/check.mjs
+      - name: Open a pull request
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.sync.outputs.version }}
+          SUMMARY: ${{ steps.sync.outputs.summary }}
+        run: |
+          set -euo pipefail
+          branch="sync-skills/$VERSION"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "$branch already exists; its pull request is waiting."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add plugins .claude-plugin .cursor-plugin
+          git commit -m "Sync skills from app.screenery.dev ($VERSION)" -m "$SUMMARY"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "Sync skills ($VERSION)" \
+            --body "$(printf 'Copied from https://app.screenery.dev/skills/ by `scripts/sync-skills.mjs`.\n\n%s\n\nMerging ships plugin version %s to Claude Code, Codex and Cursor users.' "$SUMMARY" "$VERSION")"

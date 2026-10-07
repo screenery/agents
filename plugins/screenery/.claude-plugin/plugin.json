@@ -1,0 +1,13 @@
+{
+  "name": "screenery",
+  "version": "0.1.0",
+  "description": "Screenery for coding agents: the Screenery MCP server, which onboards a repository and publishes its screenshots, plus skills for screenshot tests, docs embeds, Play Store listings, demo clips and baseline comparisons.",
+  "author": {
+    "name": "Screenery",
+    "url": "https://www.screenery.dev"
+  },
+  "homepage": "https://www.screenery.dev/docs/agents.html",
+  "repository": "https://github.com/screenery/agents",
+  "license": "MIT",
+  "keywords": ["screenshots", "playwright", "docs", "mcp", "visual-testing"]
+}

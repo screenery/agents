@@ -1,0 +1,20 @@
+{
+  "name": "screenery",
+  "owner": {
+    "name": "Screenery",
+    "url": "https://www.screenery.dev"
+  },
+  "metadata": {
+    "description": "Screenery's plugin for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "screenery",
+      "source": "./plugins/screenery",
+      "description": "Screenery for coding agents: the Screenery MCP server, which onboards a repository and publishes its screenshots, plus skills for screenshot tests, docs embeds, Play Store listings, demo clips and baseline comparisons.",
+      "version": "0.1.0",
+      "category": "development",
+      "homepage": "https://www.screenery.dev/docs/agents.html"
+    }
+  ]
+}

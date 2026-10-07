@@ -1,0 +1,30 @@
+# Do the manifests for Claude Code, Codex and Cursor still describe one plugin?
+#
+# `scripts/check.mjs` compares names, versions, the MCP address and the skill
+# folders across all of them. `claude plugin validate` then checks the Claude
+# Code files against Claude Code's own rules. Nothing here needs a secret.
+
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Manifests agree
+        run: node scripts/check.mjs
+      - name: Claude Code validates the marketplace and the plugin
+        run: |
+          npx -y @anthropic-ai/claude-code@latest plugin validate .
+          npx -y @anthropic-ai/claude-code@latest plugin validate ./plugins/screenery --strict

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "screenery",
+  "version": "0.1.0",
+  "description": "Screenery for coding agents: the Screenery MCP server, which onboards a repository and publishes its screenshots, plus skills for screenshot tests, docs embeds, Play Store listings, demo clips and baseline comparisons.",
+  "author": {
+    "name": "Screenery",
+    "url": "https://www.screenery.dev"
+  },
+  "homepage": "https://www.screenery.dev/docs/agents.html",
+  "repository": "https://github.com/screenery/agents",
+  "license": "MIT",
+  "keywords": ["screenshots", "playwright", "docs", "mcp", "visual-testing"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Screenery",
+        "shortDescription": "Product screenshots with stable URLs that update on every build.",
+        "longDescription": "Screenery for coding agents: the Screenery MCP server, which onboards a repository and publishes its screenshots, plus skills for screenshot tests, docs embeds, Play Store listings, demo clips and baseline comparisons.",
+        "developerName": "Screenery",
+        "category": "Coding",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://www.screenery.dev",
+        "defaultPrompt": [
+          "Set up Screenery for this repo.",
+          "Add screenshot tests that publish to Screenery.",
+          "Embed this repo's Screenery screenshots in the docs."
+        ],
+        "brandColor": "#3E8E52",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo.png"
+      }
+    }
+  }
+}

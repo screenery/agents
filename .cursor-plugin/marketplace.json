@@ -1,0 +1,16 @@
+{
+  "name": "screenery",
+  "owner": {
+    "name": "Screenery"
+  },
+  "plugins": [
+    {
+      "name": "screenery",
+      "source": "./plugins/screenery",
+      "description": "Screenery for coding agents: the Screenery MCP server, which onboards a repository and publishes its screenshots, plus skills for screenshot tests, docs embeds, Play Store listings, demo clips and baseline comparisons.",
+      "version": "0.1.0",
+      "homepage": "https://www.screenery.dev/docs/agents.html",
+      "logo": "assets/logo.png"
+    }
+  ]
+}

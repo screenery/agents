@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "screenery": {
+      "type": "http",
+      "url": "https://app.screenery.dev/mcp"
+    }
+  }
+}
