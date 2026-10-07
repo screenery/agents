@@ -193,6 +193,71 @@ no transform params.
 This usually costs nothing: a viewport PNG of a real UI is typically smaller
 than the full-page composite it replaces.
 
+### Dark mode: one question decides the markup
+
+If the site has a dark mode, the screenshot should match it. Screenery serves
+a screenshot's dark version at the **same URL** with `?theme=dark`, and serves
+the normal image when no dark version was captured. So asking for dark is
+always safe: it never 404s for lack of one. Capturing it is the
+`screenery-screenshots` skill's job (`{name}.dark.png`).
+
+What the component writes depends on **how the site picks its theme**. Find
+out before writing anything. Grep the site's CSS and layout:
+
+- `@media (prefers-color-scheme: dark)` and no toggle anywhere: the site
+  **follows the system setting**.
+- A toggle button, and a `data-theme` attribute or a `dark` class set on
+  `<html>` or `<body>` (Tailwind's `darkMode: 'class'`, a `theme` key in
+  `localStorage`): the site **has a switch**.
+
+**Follows the system** — a `<picture>`; the browser fetches only the one it
+needs. GitHub READMEs work this way too.
+
+```html
+<picture>
+  <source media="(prefers-color-scheme: dark)"
+          srcset="https://cdn.screenery.dev/acme/www/home/hero@latest.png?theme=dark" />
+  <img src="https://cdn.screenery.dev/acme/www/home/hero@latest.png"
+       alt="Dashboard" width="1440" height="900" />
+</picture>
+```
+
+**Has a switch** — one `<img>` per theme, hidden by the site's own marker.
+**Not `<picture>`**: it follows the system, not the switch, so a reader whose
+system is light but who chose dark gets the light image.
+
+```html
+<img class="screenery-light" src="https://cdn.screenery.dev/acme/www/home/hero@latest.png"
+     alt="Dashboard" width="1440" height="900" loading="lazy" />
+<img class="screenery-dark" src="https://cdn.screenery.dev/acme/www/home/hero@latest.png?theme=dark"
+     alt="Dashboard" width="1440" height="900" loading="lazy" />
+```
+```css
+:root:not([data-theme="dark"]) .screenery-dark { display: none; }
+[data-theme="dark"] .screenery-light { display: none; }
+```
+
+Replace `[data-theme="dark"]` with whatever the site actually sets — `.dark`
+for Tailwind's class strategy. Dark is hidden by default, so a page that has
+not set its marker yet shows one image, not two. Only hide, never re-show
+with `display: revert` or `inline`: that overrides the site's own `img`
+rules, and the dark image lays out differently from the light one.
+
+In Markdown (a README), always use the `<picture>` form: renderers strip
+`<style>`, so the switch form shows both images. `loading="lazy"` keeps the
+hidden one from downloading. Put the CSS in the site's stylesheet once, not in
+every embed.
+
+Rules either way:
+
+- **`?theme=` works on channel URLs only.** A version URL (`@v_…`) names one
+  image and answers `400` to it.
+- **Same dimensions for both.** A theme is captured at the screenshot's own
+  size and format, so one `width`/`height` pair describes both.
+- **Other themes** (`high-contrast`, a brand theme) work the same way with
+  their own name in `?theme=`. Only dark and high contrast have a media query
+  (`prefers-contrast: more`); every other theme needs the switch form.
+
 ## 4. `preconnect`, but only on pages that use it
 
 The CDN is a third origin, so the browser needs a DNS lookup plus a TCP and TLS
@@ -335,7 +400,12 @@ Two reasons to want otherwise, and neither is "commit the PNG back":
    on `naturalWidth` in the page rather than trusting the picture.
 4. **Name the event that refreshes these images** — "a merge to `main` runs the
    e2e workflow, and that is what updates them." If nothing does, say so.
-5. **Expect new assets to 404 until the first default-branch run**, and say
+5. **If you embedded dark mode, check what `?theme=dark` serves.**
+   `curl -sI '{url}?theme=dark'` and read `x-screenery-theme`: `dark` means a
+   dark version was captured; `base` means it fell back to the normal image.
+   Report which screenshots fell back. That is not a broken embed, but the
+   reader in dark mode is not getting a dark screenshot.
+6. **Expect new assets to 404 until the first default-branch run**, and say
    which ones and for roughly how long. A reviewer who finds that themselves
    reasonably assumes the whole thing is broken.
 
@@ -349,6 +419,10 @@ Two reasons to want otherwise, and neither is "commit the PNG back":
 
 - **A raw `<img>` to the CDN in a page.** No pinned size, no phone source, no
   build-time check. If you find one, fold it into the manifest.
+- **`<picture media="(prefers-color-scheme: dark)">` on a site with a theme
+  switch.** It follows the system, not the switch. Use the two-`<img>` form.
+- **A second asset name for the dark capture** (`hero-dark`). It doubles every
+  embed and has no fallback. Save `hero.dark.png` and ask for `?theme=dark`.
 - **Renaming an `asset` to make a broken embed resolve.** Two broken URLs.
 - **Committing a PNG back into the repository "just until CI runs."** It never
   gets removed, and it is the exact artefact this replaces.

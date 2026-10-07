@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "screenery",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Screenery for coding agents: the Screenery MCP server, which onboards a repository and publishes its screenshots, plus skills for screenshot tests, docs embeds, Play Store listings, demo clips and baseline comparisons.",
   "author": {
     "name": "Screenery",
